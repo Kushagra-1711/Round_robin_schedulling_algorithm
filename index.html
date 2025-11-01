@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Round Robin CPU Scheduling Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gantt-bar {
+            transition: width 0.3s ease-in-out;
+        }
+        .animated-gradient {
+            background: linear-gradient(90deg, #10b981, #6ee7b7, #10b981);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-animation 4s ease infinite;
+        }
+
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-4 sm:p-8">
+    <div class="w-full max-w-6xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold animated-gradient">Round Robin CPU Scheduling Visualizer</h1>
+            <p class="text-gray-400 mt-2">An interactive tool to visualize the Round Robin algorithm step-by-step.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Controls and Input Section -->
+            <div class="lg:col-span-1 bg-gray-800 p-6 rounded-2xl shadow-lg flex flex-col">
+                <h2 class="text-2xl font-semibold mb-4 text-white border-b border-gray-700 pb-2">Configuration</h2>
+                
+                <!-- Time Quantum Input -->
+                <div class="mb-4">
+                    <label for="time-quantum" class="block text-sm font-medium text-gray-300 mb-1">Time Quantum (TQ)</label>
+                    <input type="number" id="time-quantum" value="4" min="1" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+
+                <!-- Add Process Form -->
+                <div class="bg-gray-700/50 p-4 rounded-lg mb-4">
+                    <h3 class="text-lg font-semibold mb-3">Add New Process</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="arrival-time" class="block text-sm font-medium text-gray-300 mb-1">Arrival Time</label>
+                            <input type="number" id="arrival-time" placeholder="e.g., 0" min="0" class="w-full bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label for="burst-time" class="block text-sm font-medium text-gray-300 mb-1">Burst Time</label>
+                            <input type="number" id="burst-time" placeholder="e.g., 8" min="1" class="w-full bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                        </div>
+                    </div>
+                    <button id="add-process-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg mt-4 transition-transform transform hover:scale-105">
+                        Add Process
+                    </button>
+                </div>
+
+                <!-- Process List Table -->
+                <div class="flex-grow min-h-0 overflow-y-auto">
+                     <h3 class="text-lg font-semibold mb-2">Process List</h3>
+                     <div class="bg-gray-900 rounded-lg max-h-48 overflow-y-auto">
+                         <table class="w-full text-sm text-left text-gray-300">
+                             <thead class="text-xs text-green-400 uppercase bg-gray-700 sticky top-0">
+                                 <tr>
+                                     <th scope="col" class="px-4 py-2">P-ID</th>
+                                     <th scope="col" class="px-4 py-2">Arrival</th>
+                                     <th scope="col" class="px-4 py-2">Burst</th>
+                                     <th scope="col" class="px-4 py-2">Action</th>
+                                 </tr>
+                             </thead>
+                             <tbody id="process-list">
+                                 <!-- Processes will be added by the user -->
+                             </tbody>
+                         </table>
+                     </div>
+                </div>
+
+                <!-- Simulation Controls -->
+                <div class="mt-6 pt-4 border-t border-gray-700">
+                    <h3 class="text-lg font-semibold mb-3">Controls</h3>
+                    <div class="grid grid-cols-4 gap-2">
+                         <button id="start-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg transition-transform transform hover:scale-105 text-sm">Start</button>
+                         <button id="pause-btn" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-3 rounded-lg transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm" disabled>Pause</button>
+                         <button id="step-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm">Step</button>
+                         <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg transition-transform transform hover:scale-105 text-sm">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Section -->
+            <div class="lg:col-span-2 bg-gray-800 p-6 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-white">Live Visualization</h2>
+                <div class="space-y-6">
+                    <!-- Timer -->
+                    <div>
+                        <h3 class="font-medium text-gray-300">Current Time: <span id="current-time" class="font-bold text-2xl text-green-400 ml-2">0</span></h3>
+                    </div>
+
+                    <!-- CPU and Ready Queue -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                        <div>
+                            <h3 class="font-semibold mb-2 text-lg text-center">CPU</h3>
+                            <div id="cpu-process" class="h-20 w-20 mx-auto bg-gray-700 rounded-full flex items-center justify-center border-2 border-gray-600 shadow-lg">
+                                <span class="text-xl font-bold">Idle</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-2 text-lg text-center">Ready Queue</h3>
+                            <div id="ready-queue" class="bg-gray-900 p-3 rounded-lg min-h-[80px] flex items-center justify-center flex-wrap gap-2 border-2 border-dashed border-gray-600">
+                                <span class="text-gray-500">Empty</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gantt Chart -->
+                    <div>
+                        <h3 class="font-semibold mb-2 text-lg">Gantt Chart</h3>
+                        <div id="gantt-chart-container" class="w-full bg-gray-900 p-2 rounded-lg h-24 overflow-x-auto border border-gray-700 flex items-center">
+                           <!-- Gantt chart will be rendered here -->
+                        </div>
+                    </div>
+
+                      <!-- Results Table -->
+                    <div>
+                        <h3 class="font-semibold mb-2 text-lg">Results</h3>
+                        <div class="overflow-x-auto bg-gray-900 rounded-lg max-h-60 overflow-y-auto">
+                            <table class="w-full text-sm text-left text-gray-300">
+                                <thead class="text-xs text-green-400 uppercase bg-gray-700 sticky top-0">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3">P-ID</th>
+                                        <th scope="col" class="px-4 py-3">Arrival</th>
+                                        <th scope="col" class="px-4 py-3">Burst</th>
+                                        <th scope="col" class="px-4 py-3">Completion</th>
+                                        <th scope="col" class="px-4 py-3">Turnaround</th>
+                                        <th scope="col" class="px-4 py-3">Waiting</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="results-table">
+                                    <!-- Results will appear here after simulation -->
+                                </tbody>
+                            </table>
+                        </div>
+                         <div id="average-metrics" class="mt-4 text-right"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="w-full max-w-6xl mx-auto text-center mt-8 py-4 border-t border-gray-700">
+        <p class="text-gray-400">Developed by: Kushagra Dwivedi (23BCE0733)</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const timeQuantumInput = document.getElementById('time-quantum');
+            const arrivalTimeInput = document.getElementById('arrival-time');
+            const burstTimeInput = document.getElementById('burst-time');
+            const addProcessBtn = document.getElementById('add-process-btn');
+            const processListBody = document.getElementById('process-list');
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const stepBtn = document.getElementById('step-btn'); // New step button
+            const resetBtn = document.getElementById('reset-btn');
+            const currentTimeSpan = document.getElementById('current-time');
+            const cpuProcessSpan = document.getElementById('cpu-process').querySelector('span');
+            const readyQueueDiv = document.getElementById('ready-queue');
+            const ganttChartContainer = document.getElementById('gantt-chart-container');
+            const resultsTableBody = document.getElementById('results-table');
+            const averageMetricsDiv = document.getElementById('average-metrics');
+
+            // State
+            let processes = [];
+            let processIdCounter = 1;
+            let simulationInterval = null;
+            let isPaused = false;
+            let simulationStarted = false; // To track if simulation has begun
+            let currentTime = 0;
+            let readyQueue = [];
+            let completedProcesses = 0;
+            let processStats = [];
+            let currentCpuProcess = null;
+            let timeSliceCounter = 0;
+            
+            const COLORS = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#059669', '#047857'];
+
+            // ---- Process Management ----
+            function addProcess(arrivalTime, burstTime) {
+                if (burstTime <= 0) {
+                    return;
+                }
+                const process = {
+                    id: processIdCounter++,
+                    arrivalTime: parseInt(arrivalTime),
+                    burstTime: parseInt(burstTime),
+                    remainingTime: parseInt(burstTime),
+                    color: COLORS[(processIdCounter - 2) % COLORS.length]
+                };
+                processes.push(process);
+                renderProcessList();
+            }
+            
+            function deleteProcess(id) {
+                processes = processes.filter(p => p.id !== id);
+                renderProcessList();
+            }
+
+            function renderProcessList() {
+                processListBody.innerHTML = '';
+                processes.forEach(p => {
+                    const row = document.createElement('tr');
+                    row.className = 'bg-gray-800 border-b border-gray-700';
+                    row.innerHTML = `
+                        <td class="px-4 py-2 font-bold" style="color:${p.color};">P${p.id}</td>
+                        <td class="px-4 py-2">${p.arrivalTime}</td>
+                        <td class="px-4 py-2">${p.burstTime}</td>
+                        <td class="px-4 py-2"><button class="text-red-500 hover:text-red-700" data-id="${p.id}">X</button></td>
+                    `;
+                    processListBody.appendChild(row);
+                });
+            }
+
+            // ---- UI Updates ----
+            function updateUI() {
+                currentTimeSpan.textContent = currentTime;
+                
+                if (currentCpuProcess) {
+                    cpuProcessSpan.textContent = `P${currentCpuProcess.id}`;
+                    cpuProcessSpan.parentElement.style.borderColor = currentCpuProcess.color;
+                } else {
+                    cpuProcessSpan.textContent = 'Idle';
+                    cpuProcessSpan.parentElement.style.borderColor = '#4b5563'; // gray-600
+                }
+
+                readyQueueDiv.innerHTML = '';
+                if (readyQueue.length > 0) {
+                    readyQueue.forEach(p => {
+                        const el = document.createElement('div');
+                        el.className = 'h-10 w-10 rounded-full flex items-center justify-center font-bold text-gray-900';
+                        el.style.backgroundColor = p.color;
+                        el.textContent = `P${p.id}`;
+                        readyQueueDiv.appendChild(el);
+                    });
+                } else {
+                    readyQueueDiv.innerHTML = '<span class="text-gray-500">Empty</span>';
+                }
+            }
+
+            // ---- Simulation Logic ----
+            function startSimulation() {
+                if (processes.length === 0) return;
+                
+                if(!simulationStarted) {
+                    initializeSimulation();
+                }
+
+                isPaused = false;
+                startBtn.textContent = 'Running...';
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                stepBtn.disabled = true;
+                addProcessBtn.disabled = true;
+                timeQuantumInput.disabled = true;
+
+                simulationInterval = setInterval(simulationStep, 500);
+            }
+
+            function pauseSimulation() {
+                if(simulationInterval) {
+                    isPaused = true;
+                    clearInterval(simulationInterval);
+                    simulationInterval = null;
+
+                    startBtn.textContent = 'Resume';
+                    startBtn.disabled = false;
+                    pauseBtn.disabled = true;
+                    stepBtn.disabled = false;
+                }
+            }
+            
+            function stepSimulation() {
+                if (processes.length === 0) return;
+
+                if (!simulationStarted) {
+                    initializeSimulation();
+                }
+                
+                // Ensure we are in a paused state for stepping
+                if(simulationInterval) {
+                    clearInterval(simulationInterval);
+                    simulationInterval = null;
+                }
+                isPaused = true;
+
+                simulationStep();
+                
+                // Update buttons to reflect paused state after step
+                startBtn.textContent = 'Resume';
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                stepBtn.disabled = false;
+                addProcessBtn.disabled = true;
+                timeQuantumInput.disabled = true;
+            }
+
+            function initializeSimulation() {
+                resetState(false); // Reset logic without clearing processes
+                processStats = processes.map(p => ({ ...p, completionTime: 0, turnaroundTime: 0, waitingTime: 0 }));
+                simulationStarted = true;
+            }
+
+
+            function simulationStep() {
+                // Check for completion before proceeding
+                if (completedProcesses === processes.length) {
+                    stopSimulation(true);
+                    return;
+                }
+
+                processStats.forEach(p => {
+                    if (p.arrivalTime === currentTime && !readyQueue.includes(p) && p.remainingTime > 0) {
+                        readyQueue.push(p);
+                    }
+                });
+                
+                if (!currentCpuProcess && readyQueue.length > 0) {
+                    currentCpuProcess = readyQueue.shift();
+                    timeSliceCounter = 0;
+                }
+                
+                updateUI();
+                
+                if (currentCpuProcess) {
+                    currentCpuProcess.remainingTime--;
+                    timeSliceCounter++;
+                    addToGantt(currentCpuProcess);
+                    
+                    if (currentCpuProcess.remainingTime === 0) {
+                        // FIX: Pass the correct completion time which is the end of the current time slice
+                        handleProcessCompletion(currentCpuProcess, currentTime + 1);
+                        currentCpuProcess = null;
+                        timeSliceCounter = 0;
+                    } 
+                    else if (timeSliceCounter === parseInt(timeQuantumInput.value)) {
+                        processStats.forEach(p => {
+                            if (p.arrivalTime === (currentTime + 1) && !readyQueue.includes(p) && p.remainingTime > 0) {
+                                readyQueue.push(p);
+                            }
+                        });
+                        readyQueue.push(currentCpuProcess);
+                        currentCpuProcess = null;
+                        timeSliceCounter = 0;
+                    }
+                } else {
+                     addToGantt(null); // Idle time
+                }
+                
+                currentTime++;
+                
+                // Check for completion again after the step
+                if (completedProcesses === processes.length) {
+                    stopSimulation(true);
+                }
+            }
+            
+            function handleProcessCompletion(process, completionTime) {
+                // FIX: Use the passed completionTime for calculations
+                process.completionTime = completionTime;
+                process.turnaroundTime = process.completionTime - process.arrivalTime;
+                process.waitingTime = process.turnaroundTime - process.burstTime;
+                completedProcesses++;
+            }
+
+            function stopSimulation(finished) {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+                isPaused = false;
+                
+                startBtn.textContent = 'Start';
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                stepBtn.disabled = false;
+                addProcessBtn.disabled = false;
+                timeQuantumInput.disabled = false;
+
+                if (finished) {
+                    renderResults();
+                    updateUI();
+                    stepBtn.disabled = true; // Disable step when finished
+                    startBtn.disabled = true; // Disable start when finished
+                }
+            }
+            
+            function resetState(clearProcesses = true) {
+                stopSimulation(false);
+                currentTime = 0;
+                readyQueue = [];
+                completedProcesses = 0;
+                processStats = [];
+                currentCpuProcess = null;
+                timeSliceCounter = 0;
+                simulationStarted = false;
+                
+                if(clearProcesses) {
+                    processes = [];
+                    processIdCounter = 1;
+                    renderProcessList();
+                } else {
+                    processes.forEach(p => {
+                        p.remainingTime = p.burstTime;
+                    });
+                }
+                
+                resultsTableBody.innerHTML = '';
+                ganttChartContainer.innerHTML = '';
+                ganttChartContainer.style.position = 'static';
+                averageMetricsDiv.innerHTML = '';
+                updateUI();
+            }
+
+            // ---- Charting and Results ----
+            function addToGantt(process) {
+                let ganttBars = ganttChartContainer.querySelectorAll('.gantt-bar');
+                let lastBar = ganttBars.length > 0 ? ganttBars[ganttBars.length - 1] : null;
+                
+                if(lastBar && lastBar.dataset.processId === (process ? `P${process.id}` : 'Idle')) {
+                    lastBar.style.width = `${parseFloat(lastBar.style.width) + 20}px`;
+                    lastBar.querySelector('.gantt-time').textContent = parseInt(lastBar.querySelector('.gantt-time').textContent) + 1;
+
+                } else {
+                    const ganttBar = document.createElement('div');
+                    ganttBar.className = 'gantt-bar h-full text-center relative flex flex-col justify-center items-center';
+                    ganttBar.style.width = '20px';
+                    ganttBar.style.backgroundColor = process ? process.color : '#4b5563';
+                    ganttBar.style.flexShrink = '0';
+                    ganttBar.dataset.processId = process ? `P${process.id}` : 'Idle';
+                    
+                    const processLabel = document.createElement('span');
+                    processLabel.className = 'text-xs font-bold text-gray-900';
+                    processLabel.textContent = process ? `P${process.id}` : '';
+                    
+                    const timeLabel = document.createElement('span');
+                    timeLabel.className = 'gantt-time text-xs opacity-75 text-gray-900';
+                    timeLabel.textContent = '1';
+
+                    ganttBar.appendChild(processLabel);
+                    ganttBar.appendChild(timeLabel);
+                    ganttChartContainer.appendChild(ganttBar);
+                }
+                
+                if (currentTime % 5 === 0 || currentTime === 0) {
+                     let lastMarker = ganttChartContainer.querySelector(`[data-time="${currentTime}"]`);
+                     if(!lastMarker) {
+                         const timeMarkerContainer = document.createElement('div');
+                         timeMarkerContainer.style.position = 'absolute';
+                         timeMarkerContainer.style.left = `${(currentTime * 20)}px`;
+                         timeMarkerContainer.style.top = '0';
+                         timeMarkerContainer.style.bottom = '-20px';
+                         timeMarkerContainer.style.width = '1px';
+                         timeMarkerContainer.style.backgroundColor = 'rgba(107, 114, 128, 0.5)';
+                         timeMarkerContainer.dataset.time = currentTime;
+                         
+                         const timeMarkerLabel = document.createElement('span');
+                         timeMarkerLabel.className = 'absolute bottom-[-20px] text-xs text-gray-400';
+                         timeMarkerLabel.textContent = currentTime;
+                         timeMarkerLabel.style.transform = 'translateX(-50%)';
+
+                         timeMarkerContainer.appendChild(timeMarkerLabel);
+
+                         ganttChartContainer.style.position = 'relative'; 
+                         ganttChartContainer.appendChild(timeMarkerContainer);
+                     }
+                }
+                
+                ganttChartContainer.scrollLeft = ganttChartContainer.scrollWidth;
+            }
+
+            function renderResults() {
+                resultsTableBody.innerHTML = '';
+                let totalTurnaround = 0;
+                let totalWaiting = 0;
+
+                processStats.sort((a,b) => a.id - b.id).forEach(p => {
+                    const row = document.createElement('tr');
+                     row.className = 'bg-gray-800 border-b border-gray-700';
+                    row.innerHTML = `
+                        <td class="px-4 py-2 font-bold" style="color:${p.color};">P${p.id}</td>
+                        <td class="px-4 py-2">${p.arrivalTime}</td>
+                        <td class="px-4 py-2">${p.burstTime}</td>
+                        <td class="px-4 py-2">${p.completionTime}</td>
+                        <td class="px-4 py-2">${p.turnaroundTime}</td>
+                        <td class="px-4 py-2">${p.waitingTime}</td>
+                    `;
+                    resultsTableBody.appendChild(row);
+                    totalTurnaround += p.turnaroundTime;
+                    totalWaiting += p.waitingTime;
+                });
+                
+                const avgTurnaround = (totalTurnaround / processes.length).toFixed(2);
+                const avgWaiting = (totalWaiting / processes.length).toFixed(2);
+                
+                averageMetricsDiv.innerHTML = `
+                    <p class="font-semibold">Average Turnaround Time: <span class="text-green-400">${avgTurnaround}</span></p>
+                    <p class="font-semibold">Average Waiting Time: <span class="text-green-400">${avgWaiting}</span></p>
+                `;
+            }
+
+            // ---- Event Listeners ----
+            addProcessBtn.addEventListener('click', () => {
+                const arrival = arrivalTimeInput.value || '0';
+                const burst = burstTimeInput.value;
+                if (!burst) {
+                    return;
+                }
+                addProcess(arrival, burst);
+                arrivalTimeInput.value = '';
+                burstTimeInput.value = '';
+            });
+
+            processListBody.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    const id = parseInt(e.target.dataset.id);
+                    deleteProcess(id);
+                }
+            });
+
+            startBtn.addEventListener('click', startSimulation);
+            pauseBtn.addEventListener('click', pauseSimulation);
+            stepBtn.addEventListener('click', stepSimulation);
+            resetBtn.addEventListener('click', () => resetState(true));
+
+            // ---- Initial Setup ----
+            updateUI();
+        });
+    </script>
+</body>
+</html>
+
