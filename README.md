@@ -6,7 +6,7 @@ This entire application is built into a single index.html file, using HTML, Tail
 📸 Live Demo & Screenshot
 A live, deployed version of this project is available at:
 
-https://your-github-username.github.io/your-repo-name/
+https://kushagra-1711.github.io/Round_robin_schedulling_algorithm/
 
 (Replace the link above with your actual GitHub Pages URL after you deploy it!)
 
