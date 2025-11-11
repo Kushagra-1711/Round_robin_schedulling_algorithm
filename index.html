@@ -436,8 +436,8 @@
                     initializeSimulation();
                 }
 
-                // Use a faster interval for visual flow
-                simulationInterval = setInterval(simulationStep, 400); 
+                // Changed interval from 400ms to 1000ms for slower, 1-second execution rate
+                simulationInterval = setInterval(simulationStep, 1000); 
 
                 updateControlStates();
             }
