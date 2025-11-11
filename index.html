@@ -4,145 +4,167 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Round Robin CPU Scheduling Visualizer</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
-        .gantt-bar {
-            transition: width 0.3s ease-in-out;
+        /* Custom scrollbar for professional touch */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
         }
-        .animated-gradient {
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #34d399; /* Green-300 */
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #1f2937; /* Gray-800 */
+        }
+        .gantt-bar {
+            transition: width 0.1s ease-out; /* Slower transition for better visualization */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .animated-header {
             background: linear-gradient(90deg, #10b981, #6ee7b7, #10b981);
             background-size: 200% 200%;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradient-animation 4s ease infinite;
+            animation: header-gradient-animation 4s ease infinite;
         }
-
-        @keyframes gradient-animation {
+        @keyframes header-gradient-animation {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-4 sm:p-8">
-    <div class="w-full max-w-6xl mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold animated-gradient">Round Robin CPU Scheduling Visualizer</h1>
-            <p class="text-gray-400 mt-2">An interactive tool to visualize the Round Robin algorithm step-by-step.</p>
+
+<body class="bg-gray-950 text-white min-h-screen flex flex-col items-center p-4 sm:p-8">
+
+    <div class="w-full max-w-7xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-extrabold animated-header tracking-tight">Round Robin CPU Scheduling Visualizer</h1>
+            <p class="text-gray-400 mt-2 text-lg">Analyze performance metrics and Gantt chart generation step-by-step.</p>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Controls and Input Section -->
-            <div class="lg:col-span-1 bg-gray-800 p-6 rounded-2xl shadow-lg flex flex-col">
-                <h2 class="text-2xl font-semibold mb-4 text-white border-b border-gray-700 pb-2">Configuration</h2>
+            <!-- Configuration Panel -->
+            <div class="lg:col-span-1 bg-gray-900 p-6 rounded-3xl shadow-2xl border border-gray-800 flex flex-col h-full">
+                <h2 class="text-2xl font-bold mb-5 text-green-300">Simulation Setup</h2>
                 
                 <!-- Time Quantum Input -->
-                <div class="mb-4">
+                <div class="mb-5">
                     <label for="time-quantum" class="block text-sm font-medium text-gray-300 mb-1">Time Quantum (TQ)</label>
-                    <input type="number" id="time-quantum" value="4" min="1" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <input type="number" id="time-quantum" value="4" min="1" class="w-full bg-gray-700 border border-green-500/30 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500 shadow-inner">
                 </div>
 
                 <!-- Add Process Form -->
-                <div class="bg-gray-700/50 p-4 rounded-lg mb-4">
-                    <h3 class="text-lg font-semibold mb-3">Add New Process</h3>
-                    <div class="grid grid-cols-2 gap-3">
+                <div class="bg-gray-800 p-5 rounded-xl mb-6 shadow-inner">
+                    <h3 class="text-lg font-semibold mb-3 text-white">Process Details</h3>
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="arrival-time" class="block text-sm font-medium text-gray-300 mb-1">Arrival Time</label>
-                            <input type="number" id="arrival-time" placeholder="e.g., 0" min="0" class="w-full bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <label for="arrival-time" class="block text-xs font-medium text-gray-400 mb-1">Arrival Time (AT)</label>
+                            <input type="number" id="arrival-time" placeholder="e.g., 0" min="0" value="0" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-green-500">
                         </div>
                         <div>
-                            <label for="burst-time" class="block text-sm font-medium text-gray-300 mb-1">Burst Time</label>
-                            <input type="number" id="burst-time" placeholder="e.g., 8" min="1" class="w-full bg-gray-600 border border-gray-500 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <label for="burst-time" class="block text-xs font-medium text-gray-400 mb-1">Burst Time (BT)</label>
+                            <input type="number" id="burst-time" placeholder="e.g., 8" min="1" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-green-500">
                         </div>
                     </div>
-                    <button id="add-process-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg mt-4 transition-transform transform hover:scale-105">
+                    <button id="add-process-btn" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-xl mt-4 transition-all duration-200 transform hover:scale-[1.01] shadow-lg shadow-green-600/30 active:translate-y-0.5">
                         Add Process
                     </button>
                 </div>
 
                 <!-- Process List Table -->
-                <div class="flex-grow min-h-0 overflow-y-auto">
-                     <h3 class="text-lg font-semibold mb-2">Process List</h3>
-                     <div class="bg-gray-900 rounded-lg max-h-48 overflow-y-auto">
+                <div class="flex-grow min-h-0 overflow-hidden">
+                     <h3 class="text-lg font-semibold mb-3 text-white">Current Processes</h3>
+                     <div class="bg-gray-800/70 rounded-xl max-h-56 overflow-y-auto custom-scrollbar border border-gray-700">
                          <table class="w-full text-sm text-left text-gray-300">
-                             <thead class="text-xs text-green-400 uppercase bg-gray-700 sticky top-0">
+                             <thead class="text-xs text-green-400 uppercase bg-gray-700/80 sticky top-0 shadow-md">
                                  <tr>
-                                     <th scope="col" class="px-4 py-2">P-ID</th>
-                                     <th scope="col" class="px-4 py-2">Arrival</th>
-                                     <th scope="col" class="px-4 py-2">Burst</th>
-                                     <th scope="col" class="px-4 py-2">Action</th>
+                                     <th scope="col" class="px-4 py-3">P-ID</th>
+                                     <th scope="col" class="px-4 py-3">Arrival</th>
+                                     <th scope="col" class="px-4 py-3">Burst</th>
+                                     <th scope="col" class="px-4 py-3">Action</th>
                                  </tr>
                              </thead>
                              <tbody id="process-list">
-                                 <!-- Processes will be added by the user -->
+                                 <!-- Processes will be added here -->
                              </tbody>
                          </table>
+                         <div id="no-processes-msg" class="text-center p-4 text-gray-500 text-sm italic hidden">No processes added yet.</div>
                      </div>
                 </div>
 
                 <!-- Simulation Controls -->
-                <div class="mt-6 pt-4 border-t border-gray-700">
-                    <h3 class="text-lg font-semibold mb-3">Controls</h3>
-                    <div class="grid grid-cols-4 gap-2">
-                         <button id="start-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg transition-transform transform hover:scale-105 text-sm">Start</button>
-                         <button id="pause-btn" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-3 rounded-lg transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm" disabled>Pause</button>
-                         <button id="step-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-sm">Step</button>
-                         <button id="reset-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg transition-transform transform hover:scale-105 text-sm">Reset</button>
+                <div class="mt-8 pt-4 border-t border-gray-800">
+                    <h3 class="text-lg font-bold mb-3 text-white">Simulation Controls</h3>
+                    <div class="grid grid-cols-4 gap-3">
+                         <button id="start-btn" class="bg-green-700 hover:bg-green-600 text-white font-bold py-3 px-3 rounded-xl transition-all duration-200 shadow-md shadow-green-700/30 text-sm">Run</button>
+                         <button id="pause-btn" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 px-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm" disabled>Pause</button>
+                         <button id="step-btn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm" disabled>Step</button>
+                         <button id="back-btn" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm" disabled>&#x23EA; Back</button>
+                         <button id="reset-btn" class="col-span-4 bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-3 rounded-xl transition-all duration-200 shadow-md shadow-red-600/30 text-base mt-2">Reset Simulation</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Visualization Section -->
-            <div class="lg:col-span-2 bg-gray-800 p-6 rounded-2xl shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 text-white">Live Visualization</h2>
-                <div class="space-y-6">
-                    <!-- Timer -->
-                    <div>
-                        <h3 class="font-medium text-gray-300">Current Time: <span id="current-time" class="font-bold text-2xl text-green-400 ml-2">0</span></h3>
-                    </div>
-
-                    <!-- CPU and Ready Queue -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                        <div>
-                            <h3 class="font-semibold mb-2 text-lg text-center">CPU</h3>
-                            <div id="cpu-process" class="h-20 w-20 mx-auto bg-gray-700 rounded-full flex items-center justify-center border-2 border-gray-600 shadow-lg">
+            <!-- Visualization and Results Panel -->
+            <div class="lg:col-span-2 bg-gray-900 p-8 rounded-3xl shadow-2xl border border-gray-800">
+                <h2 class="text-2xl font-bold mb-6 text-green-300">Live Execution</h2>
+                
+                <div class="space-y-8">
+                    <!-- Timer and CPU Status -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700">
+                        <div class="mb-4 sm:mb-0">
+                            <h3 class="font-medium text-gray-300 text-lg">Current Simulation Time</h3>
+                            <span id="current-time" class="font-extrabold text-5xl text-green-400 mt-1 inline-block">0</span>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="font-semibold mb-2 text-lg text-gray-300">CPU Status</h3>
+                            <div id="cpu-process" class="h-24 w-24 mx-auto bg-gray-700 rounded-full flex items-center justify-center border-4 border-gray-600 shadow-xl transition-all duration-300">
                                 <span class="text-xl font-bold">Idle</span>
                             </div>
                         </div>
-                        <div>
-                            <h3 class="font-semibold mb-2 text-lg text-center">Ready Queue</h3>
-                            <div id="ready-queue" class="bg-gray-900 p-3 rounded-lg min-h-[80px] flex items-center justify-center flex-wrap gap-2 border-2 border-dashed border-gray-600">
-                                <span class="text-gray-500">Empty</span>
-                            </div>
+                    </div>
+
+                    <!-- Ready Queue -->
+                    <div>
+                        <h3 class="font-bold mb-3 text-xl text-white">Ready Queue (FIFO)</h3>
+                        <div id="ready-queue" class="bg-gray-800 p-4 rounded-xl min-h-[100px] flex items-center justify-start flex-wrap gap-3 border border-gray-700 custom-scrollbar overflow-x-auto">
+                            <span class="text-gray-500 italic">Queue is empty</span>
                         </div>
                     </div>
                     
                     <!-- Gantt Chart -->
                     <div>
-                        <h3 class="font-semibold mb-2 text-lg">Gantt Chart</h3>
-                        <div id="gantt-chart-container" class="w-full bg-gray-900 p-2 rounded-lg h-24 overflow-x-auto border border-gray-700 flex items-center">
-                           <!-- Gantt chart will be rendered here -->
+                        <h3 class="font-bold mb-3 text-xl text-white">Gantt Chart Timeline</h3>
+                        <!-- Gantt chart container with custom styling -->
+                        <div id="gantt-chart-container" class="w-full bg-gray-800 p-2 rounded-xl h-24 overflow-x-auto custom-scrollbar border border-gray-700 flex items-center relative">
+                           <!-- Gantt chart bars will be rendered here -->
                         </div>
+                         <p class="text-gray-400 text-xs mt-2">* Each Gantt bar segment represents 1 unit of time.</p>
                     </div>
 
-                      <!-- Results Table -->
+                    <!-- Results Table -->
                     <div>
-                        <h3 class="font-semibold mb-2 text-lg">Results</h3>
-                        <div class="overflow-x-auto bg-gray-900 rounded-lg max-h-60 overflow-y-auto">
+                        <h3 class="font-bold mb-3 text-xl text-white">Performance Metrics</h3>
+                        <div class="overflow-x-auto bg-gray-800/70 rounded-xl max-h-60 overflow-y-auto custom-scrollbar border border-gray-700">
                             <table class="w-full text-sm text-left text-gray-300">
-                                <thead class="text-xs text-green-400 uppercase bg-gray-700 sticky top-0">
+                                <thead class="text-xs text-green-400 uppercase bg-gray-700/80 sticky top-0 shadow-md">
                                     <tr>
                                         <th scope="col" class="px-4 py-3">P-ID</th>
-                                        <th scope="col" class="px-4 py-3">Arrival</th>
-                                        <th scope="col" class="px-4 py-3">Burst</th>
-                                        <th scope="col" class="px-4 py-3">Completion</th>
-                                        <th scope="col" class="px-4 py-3">Turnaround</th>
-                                        <th scope="col" class="px-4 py-3">Waiting</th>
+                                        <th scope="col" class="px-4 py-3">Arrival (AT)</th>
+                                        <th scope="col" class="px-4 py-3">Burst (BT)</th>
+                                        <th scope="col" class="px-4 py-3">Completion (CT)</th>
+                                        <th scope="col" class="px-4 py-3">Turnaround (TAT)</th>
+                                        <th scope="col" class="px-4 py-3">Waiting (WT)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="results-table">
@@ -150,20 +172,20 @@
                                 </tbody>
                             </table>
                         </div>
-                         <div id="average-metrics" class="mt-4 text-right"></div>
+                         <div id="average-metrics" class="mt-4 text-right p-3 bg-gray-800 rounded-xl"></div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <footer class="w-full max-w-6xl mx-auto text-center mt-8 py-4 border-t border-gray-700">
-        <p class="text-gray-400">Developed by: Kushagra Dwivedi (23BCE0733)</p>
+    <footer class="w-full max-w-7xl mx-auto text-center mt-12 py-4 border-t border-gray-800">
+        <p class="text-gray-500 text-sm">Round Robin Scheduling Visualizer | Professional Submission</p>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // DOM Elements
+            // == DOM Elements ==
             const timeQuantumInput = document.getElementById('time-quantum');
             const arrivalTimeInput = document.getElementById('arrival-time');
             const burstTimeInput = document.getElementById('burst-time');
@@ -171,44 +193,147 @@
             const processListBody = document.getElementById('process-list');
             const startBtn = document.getElementById('start-btn');
             const pauseBtn = document.getElementById('pause-btn');
-            const stepBtn = document.getElementById('step-btn'); // New step button
+            const stepBtn = document.getElementById('step-btn');
+            const backBtn = document.getElementById('back-btn'); // New Back button
             const resetBtn = document.getElementById('reset-btn');
             const currentTimeSpan = document.getElementById('current-time');
-            const cpuProcessSpan = document.getElementById('cpu-process').querySelector('span');
+            const cpuProcessDiv = document.getElementById('cpu-process');
+            const cpuProcessSpan = cpuProcessDiv.querySelector('span');
             const readyQueueDiv = document.getElementById('ready-queue');
             const ganttChartContainer = document.getElementById('gantt-chart-container');
             const resultsTableBody = document.getElementById('results-table');
             const averageMetricsDiv = document.getElementById('average-metrics');
+            const noProcessesMsg = document.getElementById('no-processes-msg');
 
-            // State
+            // == State and Constants ==
             let processes = [];
             let processIdCounter = 1;
             let simulationInterval = null;
-            let isPaused = false;
-            let simulationStarted = false; // To track if simulation has begun
+            let simulationStarted = false;
             let currentTime = 0;
-            let readyQueue = [];
-            let completedProcesses = 0;
-            let processStats = [];
+            let readyQueue = []; // Holds process objects (references to processStats entries)
+            let completedProcessesCount = 0;
+            let processStats = []; // Contains the working copy of processes for simulation
             let currentCpuProcess = null;
             let timeSliceCounter = 0;
+            let history = []; // Stores state snapshots for undo functionality
             
-            const COLORS = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#059669', '#047857'];
+            // Colors for professional visualization (Hues of Green/Cyan)
+            const COLORS = ['#10b981', '#06b6d4', '#34d399', '#22c3e1', '#059669', '#0891b2'];
+            const GANTT_UNIT_WIDTH = 20; // Width of one time unit in pixels
 
-            // ---- Process Management ----
-            function addProcess(arrivalTime, burstTime) {
-                if (burstTime <= 0) {
+            // == Utility Functions ==
+
+            // Custom modal replacement for alert()
+            function showMessage(message) {
+                 // Simple temporary message display
+                 const msgDiv = document.createElement('div');
+                 msgDiv.className = 'fixed top-4 right-4 bg-red-600 text-white p-3 rounded-lg shadow-xl z-50 transition-opacity duration-300';
+                 msgDiv.textContent = message;
+                 document.body.appendChild(msgDiv);
+                 setTimeout(() => {
+                     msgDiv.style.opacity = '0';
+                     setTimeout(() => msgDiv.remove(), 300);
+                 }, 3000);
+            }
+            
+            // == State History Functions ==
+
+            function takeSnapshot() {
+                // We need to deep clone processStats and readyQueue to store state correctly
+                const processStatsSnapshot = JSON.parse(JSON.stringify(processStats));
+                const readyQueueSnapshot = readyQueue.map(p => p.id); // Store IDs of processes in queue
+                
+                history.push({
+                    currentTime: currentTime,
+                    readyQueueIds: readyQueueSnapshot,
+                    completedProcessesCount: completedProcessesCount,
+                    processStats: processStatsSnapshot,
+                    currentCpuProcessId: currentCpuProcess ? currentCpuProcess.id : null,
+                    timeSliceCounter: timeSliceCounter,
+                    ganttInnerHTML: ganttChartContainer.innerHTML // Store Gantt chart HTML
+                });
+            }
+
+            function undoStep() {
+                if (history.length <= 1) { // We keep the initial state (time 0) as the first snapshot
+                    showMessage("Cannot go back further than the start of the simulation (Time 0).");
                     return;
                 }
+                
+                // Pause if running before rewind
+                pauseSimulation();
+
+                history.pop(); // Remove the current, most recent state
+                const lastState = history[history.length - 1]; // Load the state before the last step
+
+                // 1. Restore primitive/simple states
+                currentTime = lastState.currentTime;
+                completedProcessesCount = lastState.completedProcessesCount;
+                timeSliceCounter = lastState.timeSliceCounter;
+                
+                // 2. Restore process stats (deep restore)
+                processStats = lastState.processStats;
+
+                // 3. Restore current CPU process reference
+                if (lastState.currentCpuProcessId !== null) {
+                    currentCpuProcess = processStats.find(p => p.id === lastState.currentCpuProcessId);
+                } else {
+                    currentCpuProcess = null;
+                }
+
+                // 4. Restore ready queue references
+                readyQueue = lastState.readyQueueIds
+                    .map(id => processStats.find(p => p.id === id))
+                    .filter(p => p); // Ensure references are valid
+
+                // 5. Restore Gantt Chart
+                ganttChartContainer.innerHTML = lastState.ganttInnerHTML;
+                
+                // 6. Update UI and controls
+                renderResults(); // Recalculate metrics based on current (rewound) processStats
+                updateUI();
+                updateControlStates();
+            }
+
+            // == Process Management ==
+
+            function addProcessHandler() {
+                if (simulationStarted) {
+                    showMessage("Cannot add processes after the simulation has started. Please reset first.");
+                    return;
+                }
+
+                const arrivalStr = arrivalTimeInput.value;
+                const burstStr = burstTimeInput.value;
+                
+                if (!burstStr || !arrivalStr) {
+                    showMessage("Both Arrival Time and Burst Time are required.");
+                    return;
+                }
+                
+                const arrivalTime = parseInt(arrivalStr);
+                const burstTime = parseInt(burstStr);
+
+                if (isNaN(arrivalTime) || isNaN(burstTime) || burstTime <= 0 || arrivalTime < 0) {
+                    showMessage("Arrival Time must be >= 0 and Burst Time must be >= 1.");
+                    return;
+                }
+
                 const process = {
                     id: processIdCounter++,
-                    arrivalTime: parseInt(arrivalTime),
-                    burstTime: parseInt(burstTime),
-                    remainingTime: parseInt(burstTime),
+                    arrivalTime: arrivalTime,
+                    burstTime: burstTime,
+                    remainingTime: burstTime, // Initial remaining time
                     color: COLORS[(processIdCounter - 2) % COLORS.length]
                 };
+                
                 processes.push(process);
                 renderProcessList();
+                
+                // Clear inputs
+                burstTimeInput.value = '';
+                arrivalTimeInput.value = arrivalTime; // Keep AT for quick sequential entry
             }
             
             function deleteProcess(id) {
@@ -218,46 +343,91 @@
 
             function renderProcessList() {
                 processListBody.innerHTML = '';
+                processes.sort((a, b) => a.arrivalTime - b.arrivalTime || a.id - b.id);
+                
+                if (processes.length === 0) {
+                    noProcessesMsg.classList.remove('hidden');
+                } else {
+                    noProcessesMsg.classList.add('hidden');
+                }
+
                 processes.forEach(p => {
                     const row = document.createElement('tr');
-                    row.className = 'bg-gray-800 border-b border-gray-700';
+                    row.className = 'bg-gray-900/50 border-b border-gray-700 hover:bg-gray-800 transition-colors';
                     row.innerHTML = `
-                        <td class="px-4 py-2 font-bold" style="color:${p.color};">P${p.id}</td>
+                        <td class="px-4 py-2 font-bold text-base" style="color:${p.color};">P${p.id}</td>
                         <td class="px-4 py-2">${p.arrivalTime}</td>
                         <td class="px-4 py-2">${p.burstTime}</td>
-                        <td class="px-4 py-2"><button class="text-red-500 hover:text-red-700" data-id="${p.id}">X</button></td>
+                        <td class="px-4 py-2"><button class="text-red-500 hover:text-red-400 font-semibold" data-id="${p.id}" ${simulationStarted ? 'disabled' : ''}>Remove</button></td>
                     `;
                     processListBody.appendChild(row);
                 });
+                
+                updateControlStates();
             }
 
-            // ---- UI Updates ----
+            // == UI Updates ==
             function updateUI() {
                 currentTimeSpan.textContent = currentTime;
                 
                 if (currentCpuProcess) {
-                    cpuProcessSpan.textContent = `P${currentCpuProcess.id}`;
-                    cpuProcessSpan.parentElement.style.borderColor = currentCpuProcess.color;
+                    cpuProcessSpan.textContent = `P${currentCpuProcess.id} (R: ${currentCpuProcess.remainingTime})`;
+                    cpuProcessDiv.style.borderColor = currentCpuProcess.color;
+                    cpuProcessDiv.style.backgroundColor = `${currentCpuProcess.color}33`; // Lighter background tint
+                    cpuProcessSpan.style.color = currentCpuProcess.color;
+
                 } else {
                     cpuProcessSpan.textContent = 'Idle';
-                    cpuProcessSpan.parentElement.style.borderColor = '#4b5563'; // gray-600
+                    cpuProcessDiv.style.borderColor = '#4b5563'; // gray-600
+                    cpuProcessDiv.style.backgroundColor = '#1f2937'; // gray-800
+                    cpuProcessSpan.style.color = '#fff';
                 }
 
+                // Update Ready Queue
                 readyQueueDiv.innerHTML = '';
                 if (readyQueue.length > 0) {
                     readyQueue.forEach(p => {
                         const el = document.createElement('div');
-                        el.className = 'h-10 w-10 rounded-full flex items-center justify-center font-bold text-gray-900';
+                        el.className = 'h-12 w-12 rounded-full flex items-center justify-center font-bold text-gray-900 text-sm shadow-md transition-all duration-300 transform hover:scale-105';
                         el.style.backgroundColor = p.color;
                         el.textContent = `P${p.id}`;
                         readyQueueDiv.appendChild(el);
                     });
+                } else if (completedProcessesCount < processes.length) {
+                    readyQueueDiv.innerHTML = '<span class="text-gray-500 italic">Queue is empty, waiting for arrivals or running process to complete...</span>';
                 } else {
-                    readyQueueDiv.innerHTML = '<span class="text-gray-500">Empty</span>';
+                     readyQueueDiv.innerHTML = '<span class="text-gray-500 italic">Simulation complete.</span>';
                 }
             }
 
-            // ---- Simulation Logic ----
+            function updateControlStates() {
+                const isFinished = completedProcessesCount === processes.length && simulationStarted;
+                const hasProcesses = processes.length > 0;
+                
+                startBtn.disabled = !hasProcesses || isFinished || (simulationInterval !== null);
+                stepBtn.disabled = !hasProcesses || isFinished || (simulationInterval !== null);
+                pauseBtn.disabled = simulationInterval === null || isFinished;
+                backBtn.disabled = simulationInterval !== null || history.length <= 1; // Cannot go back if running or only initial state exists
+
+                if (isFinished) {
+                    startBtn.textContent = 'Finished';
+                } else if (simulationInterval !== null) {
+                    startBtn.textContent = 'Running...';
+                } else {
+                    startBtn.textContent = simulationStarted ? 'Resume' : 'Run';
+                }
+
+                timeQuantumInput.disabled = simulationStarted;
+                addProcessBtn.disabled = simulationStarted;
+
+                // Disable list action buttons if simulation has started
+                document.querySelectorAll('#process-list button').forEach(btn => {
+                    btn.disabled = simulationStarted;
+                });
+            }
+
+            // == Simulation Logic ==
+
             function startSimulation() {
                 if (processes.length === 0) return;
                 
@@ -265,158 +435,168 @@
                     initializeSimulation();
                 }
 
-                isPaused = false;
-                startBtn.textContent = 'Running...';
-                startBtn.disabled = true;
-                pauseBtn.disabled = false;
-                stepBtn.disabled = true;
-                addProcessBtn.disabled = true;
-                timeQuantumInput.disabled = true;
+                // Use a faster interval for visual flow
+                simulationInterval = setInterval(simulationStep, 400); 
 
-                simulationInterval = setInterval(simulationStep, 500);
+                updateControlStates();
             }
 
             function pauseSimulation() {
                 if(simulationInterval) {
-                    isPaused = true;
                     clearInterval(simulationInterval);
                     simulationInterval = null;
-
-                    startBtn.textContent = 'Resume';
-                    startBtn.disabled = false;
-                    pauseBtn.disabled = true;
-                    stepBtn.disabled = false;
+                    updateControlStates();
                 }
             }
             
             function stepSimulation() {
                 if (processes.length === 0) return;
-
                 if (!simulationStarted) {
                     initializeSimulation();
                 }
-                
-                // Ensure we are in a paused state for stepping
+
+                // Ensure it's paused before stepping
                 if(simulationInterval) {
                     clearInterval(simulationInterval);
                     simulationInterval = null;
                 }
-                isPaused = true;
-
-                simulationStep();
                 
-                // Update buttons to reflect paused state after step
-                startBtn.textContent = 'Resume';
-                startBtn.disabled = false;
-                pauseBtn.disabled = true;
-                stepBtn.disabled = false;
-                addProcessBtn.disabled = true;
-                timeQuantumInput.disabled = true;
+                simulationStep();
+                updateControlStates();
+
+                // If finished after the step, disable step button
+                if (completedProcessesCount === processes.length) {
+                    updateControlStates();
+                }
             }
 
             function initializeSimulation() {
-                resetState(false); // Reset logic without clearing processes
-                processStats = processes.map(p => ({ ...p, completionTime: 0, turnaroundTime: 0, waitingTime: 0 }));
+                resetState(false); 
+                
+                // Create a deep copy for simulation stats and initialize remaining time
+                processStats = JSON.parse(JSON.stringify(processes.map(p => ({ 
+                    ...p, 
+                    remainingTime: p.burstTime, 
+                    completionTime: 0, 
+                    turnaroundTime: 0, 
+                    waitingTime: 0 
+                }))));
+                
+                // Sort by arrival time then PID for initial queueing
+                processStats.sort((a, b) => a.arrivalTime - b.arrivalTime || a.id - b.id);
+                
                 simulationStarted = true;
+                takeSnapshot(); // Snapshot initial state (Time 0)
+                updateControlStates();
             }
 
-
             function simulationStep() {
+                const TQ = parseInt(timeQuantumInput.value);
+
                 // Check for completion before proceeding
-                if (completedProcesses === processes.length) {
+                if (completedProcessesCount === processes.length) {
                     stopSimulation(true);
                     return;
                 }
+                
+                // --- TAKE SNAPSHOT BEFORE EXECUTION ---
+                takeSnapshot();
 
+                // 1. Check for **new arrivals** at the current time point (currentTime)
                 processStats.forEach(p => {
-                    if (p.arrivalTime === currentTime && !readyQueue.includes(p) && p.remainingTime > 0) {
+                    // Check if process arrived, is not in queue, and still has work
+                    if (p.arrivalTime === currentTime && p.remainingTime > 0 && !readyQueue.includes(p)) {
                         readyQueue.push(p);
                     }
                 });
                 
+                // 2. Select a process if CPU is idle or process finished/preempted in the last step
                 if (!currentCpuProcess && readyQueue.length > 0) {
                     currentCpuProcess = readyQueue.shift();
                     timeSliceCounter = 0;
                 }
                 
-                updateUI();
-                
+                // 3. Execute the process (if one is running)
                 if (currentCpuProcess) {
                     currentCpuProcess.remainingTime--;
                     timeSliceCounter++;
                     addToGantt(currentCpuProcess);
                     
+                    // 4. Check for Completion or Preemption (at currentTime + 1)
                     if (currentCpuProcess.remainingTime === 0) {
-                        // FIX: Pass the correct completion time which is the end of the current time slice
+                        // Completion
                         handleProcessCompletion(currentCpuProcess, currentTime + 1);
                         currentCpuProcess = null;
                         timeSliceCounter = 0;
                     } 
-                    else if (timeSliceCounter === parseInt(timeQuantumInput.value)) {
+                    else if (timeSliceCounter === TQ) {
+                        // Preemption
+                        
+                        // Check for processes arriving EXACTLY at the moment of preemption (currentTime + 1)
+                        // Must be added to the queue *before* the preempted process.
                         processStats.forEach(p => {
-                            if (p.arrivalTime === (currentTime + 1) && !readyQueue.includes(p) && p.remainingTime > 0) {
+                            if (p.arrivalTime === (currentTime + 1) && p.remainingTime > 0 && !readyQueue.includes(p)) {
                                 readyQueue.push(p);
                             }
                         });
+                        
+                        // Add current process to the back of the queue (preemption)
                         readyQueue.push(currentCpuProcess);
                         currentCpuProcess = null;
                         timeSliceCounter = 0;
                     }
                 } else {
-                     addToGantt(null); // Idle time
+                     // CPU Idle
+                     addToGantt(null);
                 }
                 
+                // 5. Advance time
                 currentTime++;
                 
-                // Check for completion again after the step
-                if (completedProcesses === processes.length) {
+                // 6. Update UI and check for final completion
+                updateUI();
+                if (completedProcessesCount === processes.length) {
                     stopSimulation(true);
                 }
+                renderResults(); // Update results table for current step
             }
             
             function handleProcessCompletion(process, completionTime) {
-                // FIX: Use the passed completionTime for calculations
                 process.completionTime = completionTime;
                 process.turnaroundTime = process.completionTime - process.arrivalTime;
                 process.waitingTime = process.turnaroundTime - process.burstTime;
-                completedProcesses++;
+                completedProcessesCount++;
             }
 
             function stopSimulation(finished) {
-                clearInterval(simulationInterval);
-                simulationInterval = null;
-                isPaused = false;
+                if (simulationInterval) {
+                    clearInterval(simulationInterval);
+                    simulationInterval = null;
+                }
                 
-                startBtn.textContent = 'Start';
-                startBtn.disabled = false;
-                pauseBtn.disabled = true;
-                stepBtn.disabled = false;
-                addProcessBtn.disabled = false;
-                timeQuantumInput.disabled = false;
-
                 if (finished) {
                     renderResults();
-                    updateUI();
-                    stepBtn.disabled = true; // Disable step when finished
-                    startBtn.disabled = true; // Disable start when finished
                 }
+                updateControlStates();
             }
             
             function resetState(clearProcesses = true) {
                 stopSimulation(false);
                 currentTime = 0;
                 readyQueue = [];
-                completedProcesses = 0;
+                completedProcessesCount = 0;
                 processStats = [];
                 currentCpuProcess = null;
                 timeSliceCounter = 0;
                 simulationStarted = false;
+                history = []; // Clear history
                 
                 if(clearProcesses) {
                     processes = [];
                     processIdCounter = 1;
                     renderProcessList();
                 } else {
+                    // Reset remaining time on processes (for re-running simulation without inputting again)
                     processes.forEach(p => {
                         p.remainingTime = p.burstTime;
                     });
@@ -424,112 +604,149 @@
                 
                 resultsTableBody.innerHTML = '';
                 ganttChartContainer.innerHTML = '';
-                ganttChartContainer.style.position = 'static';
+                ganttChartContainer.style.position = 'relative'; // Ensure relative position for markers
                 averageMetricsDiv.innerHTML = '';
                 updateUI();
+                updateControlStates();
             }
 
-            // ---- Charting and Results ----
+            // == Charting and Results ==
             function addToGantt(process) {
                 let ganttBars = ganttChartContainer.querySelectorAll('.gantt-bar');
+                // Get the time point AFTER the current execution finishes (currentTime + 1)
+                const currentEnd = currentTime + 1; 
+
+                const processId = process ? `P${process.id}` : 'Idle';
+                const processColor = process ? process.color : '#4b5563'; // Gray for Idle
+                
                 let lastBar = ganttBars.length > 0 ? ganttBars[ganttBars.length - 1] : null;
                 
-                if(lastBar && lastBar.dataset.processId === (process ? `P${process.id}` : 'Idle')) {
-                    lastBar.style.width = `${parseFloat(lastBar.style.width) + 20}px`;
-                    lastBar.querySelector('.gantt-time').textContent = parseInt(lastBar.querySelector('.gantt-time').textContent) + 1;
+                // Check if the current bar is a continuation of the last one
+                if(lastBar && lastBar.dataset.processId === processId) {
+                    // Extend the last bar
+                    const currentWidth = parseFloat(lastBar.style.width);
+                    lastBar.style.width = `${currentWidth + GANTT_UNIT_WIDTH}px`;
+                    
+                    // Update the time label span inside the bar
+                    lastBar.dataset.duration = parseInt(lastBar.dataset.duration) + 1;
+                    const timeLabel = lastBar.querySelector('.gantt-time');
+                    if (timeLabel) timeLabel.textContent = lastBar.dataset.duration;
 
                 } else {
+                    // Create a new bar
                     const ganttBar = document.createElement('div');
-                    ganttBar.className = 'gantt-bar h-full text-center relative flex flex-col justify-center items-center';
-                    ganttBar.style.width = '20px';
-                    ganttBar.style.backgroundColor = process ? process.color : '#4b5563';
+                    ganttBar.className = 'gantt-bar h-full text-center relative flex flex-col justify-center items-center transition-all duration-100';
+                    ganttBar.style.width = `${GANTT_UNIT_WIDTH}px`;
+                    ganttBar.style.backgroundColor = processColor;
                     ganttBar.style.flexShrink = '0';
-                    ganttBar.dataset.processId = process ? `P${process.id}` : 'Idle';
+                    ganttBar.dataset.processId = processId;
+                    ganttBar.dataset.duration = '1';
                     
-                    const processLabel = document.createElement('span');
-                    processLabel.className = 'text-xs font-bold text-gray-900';
-                    processLabel.textContent = process ? `P${process.id}` : '';
+                    const labelColor = process ? (isColorDark(process.color) ? 'text-white' : 'text-gray-900') : 'text-white';
                     
-                    const timeLabel = document.createElement('span');
-                    timeLabel.className = 'gantt-time text-xs opacity-75 text-gray-900';
-                    timeLabel.textContent = '1';
+                    ganttBar.innerHTML = `
+                        <span class="text-xs font-bold ${labelColor}">${process ? `P${process.id}` : 'I'}</span>
+                        <span class="gantt-time text-xs opacity-80 ${labelColor}" style="font-size: 8px;">1</span>
+                    `;
 
-                    ganttBar.appendChild(processLabel);
-                    ganttBar.appendChild(timeLabel);
                     ganttChartContainer.appendChild(ganttBar);
                 }
                 
-                if (currentTime % 5 === 0 || currentTime === 0) {
-                     let lastMarker = ganttChartContainer.querySelector(`[data-time="${currentTime}"]`);
-                     if(!lastMarker) {
-                         const timeMarkerContainer = document.createElement('div');
-                         timeMarkerContainer.style.position = 'absolute';
-                         timeMarkerContainer.style.left = `${(currentTime * 20)}px`;
-                         timeMarkerContainer.style.top = '0';
-                         timeMarkerContainer.style.bottom = '-20px';
-                         timeMarkerContainer.style.width = '1px';
-                         timeMarkerContainer.style.backgroundColor = 'rgba(107, 114, 128, 0.5)';
-                         timeMarkerContainer.dataset.time = currentTime;
-                         
-                         const timeMarkerLabel = document.createElement('span');
-                         timeMarkerLabel.className = 'absolute bottom-[-20px] text-xs text-gray-400';
-                         timeMarkerLabel.textContent = currentTime;
-                         timeMarkerLabel.style.transform = 'translateX(-50%)';
+                // Always update the time marker at the end of the current unit
+                // Check if a marker exists for the end time (currentTime + 1)
+                let marker = ganttChartContainer.querySelector(`[data-time-point="${currentEnd}"]`);
+                if (!marker) {
+                    const timeMarkerContainer = document.createElement('div');
+                    timeMarkerContainer.style.position = 'absolute';
+                    timeMarkerContainer.style.left = `${(currentEnd * GANTT_UNIT_WIDTH)}px`;
+                    timeMarkerContainer.style.top = '0';
+                    timeMarkerContainer.style.bottom = '-20px'; // Extends below the bar
+                    timeMarkerContainer.style.width = '1px';
+                    timeMarkerContainer.style.backgroundColor = 'rgba(156, 163, 175, 0.5)'; // Gray-400
+                    timeMarkerContainer.dataset.timePoint = currentEnd;
+                    
+                    const timeMarkerLabel = document.createElement('span');
+                    timeMarkerLabel.className = 'absolute bottom-[-20px] text-xs text-gray-400 font-semibold';
+                    timeMarkerLabel.textContent = currentEnd;
+                    timeMarkerLabel.style.transform = 'translateX(-50%)';
 
-                         timeMarkerContainer.appendChild(timeMarkerLabel);
-
-                         ganttChartContainer.style.position = 'relative'; 
-                         ganttChartContainer.appendChild(timeMarkerContainer);
-                     }
+                    timeMarkerContainer.appendChild(timeMarkerLabel);
+                    ganttChartContainer.appendChild(timeMarkerContainer);
                 }
-                
+
+                // Scroll to the end
                 ganttChartContainer.scrollLeft = ganttChartContainer.scrollWidth;
+            }
+
+            // Simple function to check if a color is dark (for text contrast)
+            function isColorDark(hex) {
+                const c = hex.substring(1);      // strip #
+                const rgb = parseInt(c, 16);   // convert to integer
+                const r = (rgb >> 16) & 0xff;  // extract red
+                const g = (rgb >>  8) & 0xff;  // extract green
+                const b = (rgb >>  0) & 0xff;  // extract blue
+                const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
+                return luma < 100; // Threshold
             }
 
             function renderResults() {
                 resultsTableBody.innerHTML = '';
                 let totalTurnaround = 0;
                 let totalWaiting = 0;
+                let completedCount = 0;
 
+                // Sort by PID for final results display
                 processStats.sort((a,b) => a.id - b.id).forEach(p => {
+                    const ct = p.completionTime || '---';
+                    const tat = p.turnaroundTime || '---';
+                    const wt = p.waitingTime || '---';
+
+                    if (p.completionTime > 0) {
+                        totalTurnaround += p.turnaroundTime;
+                        totalWaiting += p.waitingTime;
+                        completedCount++;
+                    }
+
                     const row = document.createElement('tr');
-                     row.className = 'bg-gray-800 border-b border-gray-700';
+                     row.className = 'bg-gray-900/50 border-b border-gray-700';
                     row.innerHTML = `
-                        <td class="px-4 py-2 font-bold" style="color:${p.color};">P${p.id}</td>
-                        <td class="px-4 py-2">${p.arrivalTime}</td>
-                        <td class="px-4 py-2">${p.burstTime}</td>
-                        <td class="px-4 py-2">${p.completionTime}</td>
-                        <td class="px-4 py-2">${p.turnaroundTime}</td>
-                        <td class="px-4 py-2">${p.waitingTime}</td>
+                        <td class="px-4 py-3 font-bold text-base" style="color:${p.color};">P${p.id}</td>
+                        <td class="px-4 py-3">${p.arrivalTime}</td>
+                        <td class="px-4 py-3">${p.burstTime}</td>
+                        <td class="px-4 py-3 font-medium text-green-300">${ct}</td>
+                        <td class="px-4 py-3 font-medium text-blue-300">${tat}</td>
+                        <td class="px-4 py-3 font-medium text-yellow-300">${wt}</td>
                     `;
                     resultsTableBody.appendChild(row);
-                    totalTurnaround += p.turnaroundTime;
-                    totalWaiting += p.waitingTime;
                 });
                 
-                const avgTurnaround = (totalTurnaround / processes.length).toFixed(2);
-                const avgWaiting = (totalWaiting / processes.length).toFixed(2);
-                
-                averageMetricsDiv.innerHTML = `
-                    <p class="font-semibold">Average Turnaround Time: <span class="text-green-400">${avgTurnaround}</span></p>
-                    <p class="font-semibold">Average Waiting Time: <span class="text-green-400">${avgWaiting}</span></p>
-                `;
+                if (processes.length > 0) {
+                    const avgTurnaround = completedCount > 0 ? (totalTurnaround / completedCount).toFixed(2) : '0.00';
+                    const avgWaiting = completedCount > 0 ? (totalWaiting / completedCount).toFixed(2) : '0.00';
+                    
+                    averageMetricsDiv.innerHTML = `
+                        <p class="font-bold text-lg text-white">Average Metrics</p>
+                        <p class="font-semibold text-gray-300">Average Turnaround Time: <span class="text-green-400 text-xl ml-2">${avgTurnaround}</span></p>
+                        <p class="font-semibold text-gray-300">Average Waiting Time: <span class="text-green-400 text-xl ml-2">${avgWaiting}</span></p>
+                    `;
+                }
             }
 
-            // ---- Event Listeners ----
-            addProcessBtn.addEventListener('click', () => {
-                const arrival = arrivalTimeInput.value || '0';
-                const burst = burstTimeInput.value;
-                if (!burst) {
-                    return;
-                }
-                addProcess(arrival, burst);
-                arrivalTimeInput.value = '';
-                burstTimeInput.value = '';
+            // == Event Listeners ==
+            addProcessBtn.addEventListener('click', addProcessHandler);
+            arrivalTimeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && burstTimeInput.value) addProcessHandler();
+            });
+            burstTimeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addProcessHandler();
             });
 
             processListBody.addEventListener('click', (e) => {
-                if (e.target.tagName === 'BUTTON') {
+                if (e.target.tagName === 'BUTTON' && e.target.dataset.id) {
+                    if (simulationStarted) {
+                        showMessage("Cannot remove processes during simulation. Please reset first.");
+                        return;
+                    }
                     const id = parseInt(e.target.dataset.id);
                     deleteProcess(id);
                 }
@@ -538,12 +755,12 @@
             startBtn.addEventListener('click', startSimulation);
             pauseBtn.addEventListener('click', pauseSimulation);
             stepBtn.addEventListener('click', stepSimulation);
+            backBtn.addEventListener('click', undoStep); // Hook up the new back function
             resetBtn.addEventListener('click', () => resetState(true));
 
-            // ---- Initial Setup ----
-            updateUI();
+            // == Initial Setup ==
+            renderProcessList(); // Initializes the table and controls
         });
     </script>
 </body>
 </html>
-
